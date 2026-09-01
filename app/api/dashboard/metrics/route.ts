@@ -71,7 +71,7 @@ export async function GET(req: NextRequest) {
   const supabase = getSupabaseAdmin();
 
   const { data, error } = await supabase
-    .from("email_dashboard_daily")
+    .from("email_daily_stats")
     .select(
       "email_date, business_unit, total_emails, delivered, opened, clicked, bounced, failed, complained, suppressed"
     )
@@ -81,7 +81,7 @@ export async function GET(req: NextRequest) {
     .order("email_date", { ascending: true });
 
   if (error) {
-    console.error("email_dashboard_daily query failed:", error);
+    console.error("email_daily_stats query failed:", error);
     return NextResponse.json({ error: "Failed to load dashboard metrics." }, { status: 500 });
   }
 
@@ -167,5 +167,7 @@ export async function GET(req: NextRequest) {
     businessUnits,
   };
 
-  return NextResponse.json(response);
+  return NextResponse.json(response, {
+    headers: { "Cache-Control": "public, s-maxage=30, stale-while-revalidate=60" },
+  });
 }
