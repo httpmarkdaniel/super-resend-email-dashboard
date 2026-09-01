@@ -36,7 +36,14 @@ export async function GET(req: NextRequest) {
   let query = supabase
     .from("email_logs")
     .select("resend_email_id, business_unit, sender, recipients, subject, status, sent_at")
-    .order("sent_at", { ascending: false, nullsFirst: false })
+    // Excluding nulls lets this use a plain "sent_at.desc" order, which
+    // matches idx_email_logs_business_unit_sent_at's native (NULLS FIRST)
+    // ordering. The previous `nullsFirst: false` option forced PostgREST
+    // to request NULLS LAST, which doesn't match the index and made
+    // Postgres fall back to a full sort — timing out on this 1.5M+ row
+    // table (measured ~9s query time vs ~0.5-0.8s with this filter).
+    .not("sent_at", "is", null)
+    .order("sent_at", { ascending: false })
     // Fetch one extra row to cheaply detect a next page without a COUNT(*) over a 1M+ row table.
     .range(offset, offset + pageSize);
 
