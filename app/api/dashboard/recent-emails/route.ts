@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseAdmin } from "@/lib/supabase-admin";
+import { classifyBroadcastCategory } from "@/lib/broadcast-classifier";
 import { BUSINESS_UNITS, type BusinessUnit, type EmailLogRow, type RecentEmailsResponse } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
@@ -54,8 +55,13 @@ export async function GET(req: NextRequest) {
   const rows = (data ?? []) as EmailLogRow[];
   const hasMore = rows.length > pageSize;
 
+  const rowsWithCategory = rows.slice(0, pageSize).map((row) => ({
+    ...row,
+    broadcast_category: classifyBroadcastCategory(row.business_unit, row.subject),
+  }));
+
   const response: RecentEmailsResponse = {
-    rows: rows.slice(0, pageSize),
+    rows: rowsWithCategory,
     page,
     pageSize,
     hasMore,

@@ -81,6 +81,8 @@ export interface EmailLogRow {
   subject: string | null;
   status: string | null;
   sent_at: string | null;
+  /** Derived client-side-safe field, computed server-side — not a DB column. */
+  broadcast_category?: string;
 }
 
 export interface RecentEmailsResponse {
@@ -92,4 +94,64 @@ export interface RecentEmailsResponse {
 
 export interface ApiErrorResponse {
   error: string;
+}
+
+export interface BroadcastCategoryPerformance {
+  businessUnit: BusinessUnit;
+  broadcastCategory: string;
+  totalSent: number;
+  delivered: number;
+  opened: number;
+  clicked: number;
+  bounced: number;
+  failed: number;
+  complained: number;
+  deliveryRate: number | null;
+  openRate: number | null;
+  clickRate: number | null;
+  bounceRate: number | null;
+  topSubject: string | null;
+  lastSent: string | null;
+}
+
+export interface BroadcastPerformanceResponse {
+  range: { from: string; to: string };
+  truncated: boolean;
+  scannedRows: number;
+  totalMatchingRows: number | null;
+  categories: BroadcastCategoryPerformance[];
+}
+
+export interface SubjectPerformance {
+  subject: string;
+  businessUnit: BusinessUnit;
+  broadcastCategory: string;
+  sent: number;
+  delivered: number;
+  opened: number;
+  clicked: number;
+  bounced: number;
+  failed: number;
+  complained: number;
+  deliveryRate: number | null;
+  openRate: number | null;
+  clickRate: number | null;
+  bounceRate: number | null;
+  firstSent: string | null;
+  lastSent: string | null;
+}
+
+export interface SubjectPerformanceResponse {
+  range: { from: string; to: string };
+  truncated: boolean;
+  scannedRows: number;
+  totalMatchingRows: number | null;
+  subjects: SubjectPerformance[];
+}
+
+export interface SubjectEmailsResponse {
+  rows: EmailLogRow[];
+  page: number;
+  pageSize: number;
+  hasMore: boolean;
 }

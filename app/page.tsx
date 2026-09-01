@@ -11,6 +11,7 @@ import { VolumeChart } from "@/components/dashboard/VolumeChart";
 import { EngagementChart } from "@/components/dashboard/EngagementChart";
 import { BusinessUnitChart } from "@/components/dashboard/BusinessUnitChart";
 import { RecentEmailsTable } from "@/components/dashboard/RecentEmailsTable";
+import { BroadcastPerformanceSection } from "@/components/dashboard/BroadcastPerformanceSection";
 import { LoadingState, ErrorState, EmptyState } from "@/components/dashboard/StateMessage";
 import { resolveDateRange } from "@/lib/date-ranges";
 import { formatNumber, formatPercent } from "@/lib/format";
@@ -198,6 +199,14 @@ export default function Home() {
         />
 
         {metricsSection}
+
+        <BroadcastPerformanceSection
+          businessUnit={businessUnit}
+          range={range}
+          customFrom={customFrom}
+          customTo={customTo}
+          onBusinessUnitChange={handleBusinessUnitChange}
+        />
 
         <section className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
           <div className="mb-4">

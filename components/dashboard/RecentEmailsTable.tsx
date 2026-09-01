@@ -30,6 +30,7 @@ export function RecentEmailsTable({
             <tr className="text-left text-xs font-medium uppercase tracking-wide text-gray-500">
               <th className="py-2 pr-4">Date</th>
               <th className="py-2 pr-4">Business Unit</th>
+              <th className="py-2 pr-4">Category</th>
               <th className="py-2 pr-4">Sender</th>
               <th className="py-2 pr-4">Subject</th>
               <th className="py-2 pr-4">Recipient</th>
@@ -43,6 +44,9 @@ export function RecentEmailsTable({
                   {formatDateTime(row.sent_at)}
                 </td>
                 <td className="whitespace-nowrap py-2.5 pr-4">{row.business_unit ?? "—"}</td>
+                <td className="max-w-[160px] truncate py-2.5 pr-4 text-gray-500" title={row.broadcast_category}>
+                  {row.broadcast_category ?? "—"}
+                </td>
                 <td className="whitespace-nowrap py-2.5 pr-4 text-gray-500">{row.sender ?? "—"}</td>
                 <td className="max-w-xs truncate py-2.5 pr-4" title={row.subject ?? undefined}>
                   {row.subject ?? "—"}
