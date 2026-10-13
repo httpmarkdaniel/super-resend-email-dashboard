@@ -49,11 +49,10 @@ function classifyBusinessUnit(from = "") {
   const sender = from.toLowerCase();
 
   if (sender.includes("info@hmr.ph")) return "HMR Retail";
-  if (sender.includes("inquire@hmr.ph")) return "HMR Auctions";
+  if (sender.includes("inquire@hmr.ph") || sender.includes("meredith.amit@hmr.ph")) return "HMR Auctions";
   if (sender.includes("warren.carman@hmr.ph")) return "HMR Solutions";
   if (
-    sender.includes("@envirocycle-inc.com") ||
-    sender.includes("@marketing.envirocycle-inc.com") ||
+    sender.includes("envirocycle-inc.com") || // any subdomain, e.g. connect.
     sender.includes("envirocycle@marketing.hmr.ph")
   ) {
     return "Envirocycle";

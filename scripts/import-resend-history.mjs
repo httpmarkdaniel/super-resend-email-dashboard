@@ -15,13 +15,13 @@ function classifyBusinessUnit(from = "") {
     return "HMR Retail";
   }
 
-  if (sender.includes("inquire@hmr.ph")) {
+  if (sender.includes("inquire@hmr.ph") || sender.includes("meredith.amit@hmr.ph")) {
     return "HMR Auctions";
   }
 
   if (
     sender.includes("envirocycle@marketing.hmr.ph") ||
-    sender.includes("@marketing.envirocycle-inc.com")
+    sender.includes("envirocycle-inc.com") // any subdomain, e.g. connect.
   ) {
     return "Envirocycle";
   }
