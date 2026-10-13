@@ -25,7 +25,7 @@ function classifyBusinessUnit(from = "") {
     return "HMR Retail";
   }
 
-  if (sender.includes("inquire@hmr.ph") || sender.includes("meredith.amit@hmr.ph")) {
+  if (sender.includes("inquire@hmr.ph") || sender.includes("inquire@marketing.hmr.ph") || sender.includes("meredith.amit@hmr.ph")) {
     return "HMR Auctions";
   }
 
@@ -35,7 +35,8 @@ function classifyBusinessUnit(from = "") {
 
   if (
     sender.includes("envirocycle-inc.com") || // any subdomain, e.g. connect.
-    sender.includes("envirocycle@marketing.hmr.ph")
+    sender.includes("envirocycle@marketing.hmr.ph") ||
+    sender.includes("albert.canoy@hmr.ph")
   ) {
     return "Envirocycle";
   }
