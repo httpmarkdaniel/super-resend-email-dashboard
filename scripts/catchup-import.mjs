@@ -8,6 +8,14 @@
 // Run with:
 //   node --env-file=.env.local scripts/catchup-import.mjs
 //
+// Optional:
+//   CATCHUP_AFTER=2026-09-01T09:19:38Z  start after this time instead of MAX(sent_at)
+//     (needed when the webhook has already written newer rows, e.g. after an outage)
+//   MAX_PAGES=10000                      raise the safety valve for a long gap
+//
+// Each page is upserted as soon as it's fetched, so an interrupted run keeps
+// what it imported and can simply be run again.
+//
 // Requires: NEXT_PUBLIC_SUPABASE_URL, SUPABASE_SECRET_KEY, RESEND_API_KEY
 
 import { createClient } from "@supabase/supabase-js";
@@ -32,7 +40,7 @@ const REQUEST_DELAY_MS = 150; // stay well under Resend's 10 req/s rate limit
 // Safety valve: this is a bounded catch-up, not the historical importer. If we
 // haven't reached the cutoff within this many pages, stop and surface it
 // rather than silently sliding into a full historical re-import.
-const MAX_PAGES = 3000;
+const MAX_PAGES = Number(process.env.MAX_PAGES) || 3000;
 
 // Same rules as app/api/resend-webhook/route.ts — duplicated intentionally
 // so this one-time script has no dependency on (and makes no change to)
@@ -64,6 +72,11 @@ function sleep(ms) {
 }
 
 async function getCutoff() {
+  if (process.env.CATCHUP_AFTER) {
+    const after = new Date(process.env.CATCHUP_AFTER);
+    if (Number.isNaN(after.getTime())) throw new Error(`Invalid CATCHUP_AFTER: ${process.env.CATCHUP_AFTER}`);
+    return after;
+  }
   const { data, error } = await supabase
     .from("email_logs")
     .select("sent_at")
@@ -83,6 +96,7 @@ async function main() {
 
   const now = new Date();
   const toImport = [];
+  let upserted = 0;
   let cursorAfter;
   let fetchedTotal = 0;
   let page = 0;
@@ -133,6 +147,16 @@ async function main() {
       });
     }
 
+    const pending = toImport.slice(upserted);
+    if (pending.length) {
+      const { error: upsertError } = await supabase.from("email_logs").upsert(pending, { onConflict: "resend_email_id" });
+      if (upsertError) {
+        throw new Error(`Upsert failed on page ${page}: ${upsertError.message}`);
+      }
+      upserted += pending.length;
+      console.log(`Inserted/upserted: ${upserted}`);
+    }
+
     if (stoppedAtCutoff || !result.has_more) break;
 
     cursorAfter = items[items.length - 1].id;
@@ -149,18 +173,6 @@ async function main() {
   const newest = toImport[0];
   const oldest = toImport[toImport.length - 1];
   console.log(`Newest processed: ${newest.sent_at} (${newest.resend_email_id})`);
-
-  let upserted = 0;
-  for (let i = 0; i < toImport.length; i += PAGE_SIZE) {
-    const batch = toImport.slice(i, i + PAGE_SIZE);
-    const { error } = await supabase.from("email_logs").upsert(batch, { onConflict: "resend_email_id" });
-    if (error) {
-      throw new Error(`Upsert failed on batch starting at index ${i}: ${error.message}`);
-    }
-    upserted += batch.length;
-    console.log(`Inserted/upserted: ${upserted}`);
-    await sleep(REQUEST_DELAY_MS);
-  }
 
   const businessUnitCounts = toImport.reduce((acc, row) => {
     acc[row.business_unit] = (acc[row.business_unit] ?? 0) + 1;
